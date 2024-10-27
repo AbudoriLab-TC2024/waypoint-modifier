@@ -26,4 +26,6 @@ resample では点列を、距離及び曲率を使って間引く。0番目の�
 - 点の間隔の累和が `MAX_ACCUM_DIST` を越えた時
 - 曲率の累和が `MAX_ACCUM_CURV` を越えた時
 
+ただし、 停止時に点が重複するのを除去するために `MIN_ACCUM_DIST` 以上の距離を走行していることを制約に加えている。
+
 ![img](./docs/resample.png)

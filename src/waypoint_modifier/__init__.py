@@ -59,6 +59,7 @@ def set_distance(
 
 def do_sample(
     df: pd.DataFrame,
+    min_d: float,
     max_d: float,
     max_c: float,
     x_col="x",
@@ -77,7 +78,7 @@ def do_sample(
         dist += df[distance_col].values[i]
         curv += df[curvature_col].values[i]
 
-        if dist > max_d or curv > max_c:
+        if (dist > max_d or curv > max_c) and dist > min_d:
             ret.append(df.iloc[i])
             dist = 0.0
             curv = 0.0
@@ -91,6 +92,7 @@ def do_sample(
 
 def resample(
     df: pd.DataFrame,
+    min_d: float,
     max_d: float,
     max_c: float,
     window=20,
@@ -106,7 +108,7 @@ def resample(
     set_distance(df, x_col, y_col, distance_col)
     set_curvature(df, x_col, y_col, curvature_col, window, min_r)
 
-    return do_sample(df, max_d, max_c, x_col, y_col, distance_col, curvature_col)
+    return do_sample(df, min_d, max_d, max_c, x_col, y_col, distance_col, curvature_col)
 
 
 def create_figure(title=None, height=600) -> go.Figure:
