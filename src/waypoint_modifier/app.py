@@ -3,9 +3,12 @@ import plotly.express as px
 import plotly.graph_objects as go
 import dash
 import numpy as np
+import sys
 
 import pandas as pd
 import os
+
+initial_file = sys.argv[1]
 
 
 # csv format
@@ -35,7 +38,7 @@ app.layout = html.Div(
                     [
                         dcc.Input(
                             id="filename-input",
-                            value="test/data/circle_test/test_0001.csv",
+                            value=initial_file,
                             type="text",
                             style={"width": "100%"},
                         ),
