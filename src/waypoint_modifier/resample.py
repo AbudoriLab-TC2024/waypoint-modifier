@@ -66,7 +66,7 @@ class Resampler:
         dist = 0.0
         curv = 0.0
 
-        ret = []
+        ret = [df.iloc[0]]
         for i in range(len(df)):
             dist += df[self._distance_col].values[i]
             curv += df[self._curvature_col].values[i]
