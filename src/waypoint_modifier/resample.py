@@ -160,7 +160,7 @@ def main():
     if "action" not in dst_df.columns:
         dst_df["action"] = ""
 
-    dst_df[["x", "y", "action"]].to_csv(dst_filename)
+    dst_df[["x", "y", "action"]].to_csv(dst_filename, index=False)
 
 
 if __name__ == "__main__":
