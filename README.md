@@ -12,7 +12,7 @@ waypoint を編集及び可視化するツール
 ### インストール
 
 ```shell
-pip install -e .
+pip install .
 
 # 必要に応じて
 export PATH=$PATH:$HOME/.local/bin
