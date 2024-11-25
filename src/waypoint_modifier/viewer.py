@@ -3,12 +3,25 @@ import plotly.express as px
 import plotly.graph_objects as go
 import dash
 import numpy as np
-import sys
+import argparse
 
 import pandas as pd
 import os
 
-initial_file = sys.argv[1]
+parser = argparse.ArgumentParser()
+parser.add_argument("initial_file", type=str, help="Initial file to load")
+parser.add_argument("--base-csv", type=str, help="Base pose list csv file")
+parser.add_argument(
+    "--simple-xy-col-for-base-csv",
+    action="store_true",
+    help="Use 'x', 'y' for the base csv columns name instead of '/pcl_pose/pose/pose/positon/x,y'",
+)
+
+args = parser.parse_args()
+initial_file = args.initial_file
+base_file = args.base_csv
+
+base_df = pd.read_csv(base_file) if base_file else None
 
 
 # csv format
@@ -16,6 +29,11 @@ X = "x"
 Y = "y"
 ACTION = "action"
 YAW = "yaw"
+BASE_X, BASE_Y = (
+    ("x", "y")
+    if args.simple_xy_col_for_base_csv
+    else ("/pcl_pose/pose/pose/position/x", "/pcl_pose/pose/pose/position/y")
+)
 
 # for visualization
 COLOR = {
@@ -144,6 +162,19 @@ def load_and_update_graph(reload_signal, filename, graph_view):
     )
 
     fig = go.Figure()
+
+    if base_df is not None:
+        fig.add_trace(
+            go.Scatter(
+                x=base_df[BASE_X],
+                y=base_df[BASE_Y],
+                text=df.index.astype(str),
+                mode="markers",
+                marker=dict(symbol="circle", color=base_df.index),
+                name="base",
+                opacity=0.4,
+            )
+        )
 
     fig.add_trace(
         go.Scatter(

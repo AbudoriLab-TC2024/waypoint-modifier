@@ -1,25 +1,3 @@
-[tool.poetry]
-name = "waypoint-modifier"
-version = "0.1.0"
-description = ""
-authors = ["nonanonno <as.nonanonno@gmail.com>"]
-readme = "README.md"
-packages = [{ include = "waypoint_modifier", from = "src" }]
-
-[tool.poetry.dependencies]
-python = "^3.10"
-plotly = "^5.24.1"
-pandas = "^2.2.3"
-numpy = "^2.1.2"
-nbformat = "^5.10.4"
-jupyter = "^1.1.1"
-dash = "^2.18.2"
-
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-
-[tool.poetry.scripts]
-viewer = "waypoint_modifier.app:main"
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
