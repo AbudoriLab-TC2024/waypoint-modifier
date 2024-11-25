@@ -63,6 +63,6 @@ waypoint の CSVを可視化するWebアプリ。pip インストール時にイ
 - y : y座標
 - action : その点でのアクション (空白 or `continue` or `stop`)
 
-`i` → `i+1` の点のベクトルを使って yaw角を計算している。これは [follow_path.py](https://github.com/AbudoriLab-TC2024/penguin_nav?tab=readme-ov-file#follow_pathpy)と同様の実装となる。0番目の点のyaw角は0になる。
+`i-1` → `i` の点のベクトルを使って yaw角を計算している。これは [follow_path.py](https://github.com/AbudoriLab-TC2024/penguin_nav?tab=readme-ov-file#follow_pathpy)と同様の実装となる。0番目の点のyaw角は0になる。
 
 `viewer` 自体に点列を編集機能はない。読み込んだファイルを監視しているので、ファイルを編集すればそれが反映される。
