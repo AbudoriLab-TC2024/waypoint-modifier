@@ -12,6 +12,8 @@ waypoint を編集及び可視化するツール
 ### インストール
 
 ```shell
+https://github.com/AbudoriLab-TC2024/waypoint-modifier.git
+cd waypoint-modifier
 pip install .
 
 # 必要に応じて
