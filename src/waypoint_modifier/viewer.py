@@ -138,6 +138,30 @@ def update_graph_view(relayoutData):
         ret["autosize"] = relayoutData["autosize"]
     return ret
 
+def compute_yaw(df: pd.DataFrame) -> pd.DataFrame:
+    yaw = 0.0
+
+    has_yaw_deg = "yaw_deg" in df.columns
+
+    def set_if_nan(i, yaw):
+        if not np.isnan(df.at[df.index[i], YAW]):
+            return
+        if has_yaw_deg and not np.isnan(df.at[df.index[i], "yaw_deg"]):
+            yaw = np.radians(df.at[df.index[i], "yaw_deg"])
+
+        df.at[df.index[i], YAW] = yaw
+
+    for i in range(len(df) - 1):
+        dx = df.at[df.index[i + 1], X] - df.at[df.index[i], X]
+        dy = df.at[df.index[i + 1], Y] - df.at[df.index[i], Y]
+        yaw = np.arctan2(dy, dx)
+        set_if_nan(i, yaw)
+
+    set_if_nan(len(df) - 1, yaw)
+
+    return df
+
+
 
 @callback(
     Output("graph-content", "figure"),
@@ -153,7 +177,20 @@ def load_and_update_graph(reload_signal, filename, graph_view):
     df.loc[df[ACTION].isna(), [ACTION]] = ""
     if df.at[df.index[-1], ACTION] == "":
         df.at[df.index[-1], ACTION] = "stop"
-    df[YAW] = np.arctan2(df[Y].diff().fillna(0), df[X].diff().fillna(0))
+
+    # tolerance
+    if "left_tolerance" not in df.columns:
+        df["left_tolerance"] = 0.0
+    df.loc[df["left_tolerance"].isna(), ["left_tolerance"]] = 0.0
+    if "right_tolerance" not in df.columns:
+        df["right_tolerance"] = 0.0
+    df.loc[df["right_tolerance"].isna(), ["right_tolerance"]] = 0.0
+
+
+    if YAW not in df.columns:
+        df[YAW] = np.nan
+
+    compute_yaw(df)
     df["yaw_for_arrow"] = 90 - np.degrees(df[YAW])
     df["color"] = df[ACTION].apply(lambda x: COLOR.get(x, "green"))
     df["text"] = df[[ACTION, YAW]].apply(
@@ -188,6 +225,33 @@ def load_and_update_graph(reload_signal, filename, graph_view):
         )
     )
 
+    # add tolerance
+    tole_x = []
+    tole_y = []
+    for i, row in df.iterrows():
+        # left
+        tole_x.append(row[X] + row["left_tolerance"] * np.cos(row[YAW] + np.pi / 2))
+        tole_y.append(row[Y] + row["left_tolerance"] * np.sin(row[YAW] + np.pi / 2))
+        # right
+        tole_x.append(row[X] + row["right_tolerance"] * np.cos(row[YAW] - np.pi / 2))
+        tole_y.append(row[Y] + row["right_tolerance"] * np.sin(row[YAW] - np.pi / 2))
+        # insert nan
+        tole_x.append(np.nan)
+        tole_y.append(np.nan)
+
+    fig.add_trace(
+        go.Scatter(
+            x=tole_x,
+            y=tole_y,
+            mode="lines",
+            line_color="blue",
+            name="tolerance",
+        )
+    )
+
+
+
+
     fig.update_layout(dragmode="pan", width=None, height=None, autosize=True)
     fig.update_xaxes(scaleanchor=Y, scaleratio=1, title_text=X)
     fig.update_yaxes(title_text=Y)
@@ -201,93 +265,6 @@ def load_and_update_graph(reload_signal, filename, graph_view):
         fig.update_layout(autosize=graph_view["autosize"])
 
     return fig
-
-
-# @callback(
-#     Output("graph-data", "data"),
-#     Output("file-timestamp", "data"),
-#     Input("file-check-interval", "n_intervals"),
-#     State("file-timestamp", "data"),
-# )
-# def reload_data(n_intervals, filename, file_timestamp):
-#     if filename is None:
-#         return dash.no_update
-#     last_modified_time = file_timestamp
-
-#     # Get the current modified time of the file
-#     current_modified_time = os.path.getmtime(filename)
-
-#     # Check if the file has been modified since the last check
-#     if current_modified_time == last_modified_time:
-#         return dash.no_update
-
-#     # Read the file and return the data
-#     df = pd.read_csv(filename)
-#     return {
-#         "columns": [{"name": i, "id": i} for i in df.columns],
-#         "values": df.to_dict("records"),
-#     }, current_modified_time
-
-
-# @callback(Output("graph-view", "data"), Input("graph-content", "relayoutData"))
-# def update_graph_view(relayoutData):
-#     if relayoutData is None:
-#         return dash.no_update
-#     ret = {}
-#     if "xaxis.range[0]" in relayoutData:
-#         ret["xaxis"] = [relayoutData["xaxis.range[0]"], relayoutData["xaxis.range[1]"]]
-#     if "yaxis.range[0]" in relayoutData:
-#         ret["yaxis"] = [relayoutData["yaxis.range[0]"], relayoutData["yaxis.range[1]"]]
-#     if "autosize" in relayoutData:
-#         ret["autosize"] = relayoutData["autosize"]
-#     return ret
-
-
-# @callback(
-#     Output("graph-content", "figure"),
-#     Input("graph-data", "data"),
-#     State("graph-view", "data"),
-# )
-# def update_graph(data, graph_view):
-#     fig = go.Figure()
-#     fig.update_layout(dragmode="pan", width=None, height=None, autosize=True)
-#     fig.update_xaxes(scaleanchor=Y, scaleratio=1, title_text=X)
-#     fig.update_yaxes(title_text=Y)
-#     df = data.get("values", [])
-
-#     yaws = [0]
-#     for i in range(1, len(df)):
-#         dx = df[i][X] - df[i - 1][X]
-#         dy = df[i][Y] - df[i - 1][Y]
-#         yaws.append(math.atan2(dy, dx))
-
-#     yaws_for_arrow = [90 - math.degrees(yaw) for yaw in yaws]
-
-#     text = [
-#         f"{i+1}, yaw: {yaw}{'<br>action: ' + elem['action'] if elem['action'] else ''}"
-#         for i, (yaw, elem) in enumerate(zip(yaws, df))
-#     ]
-#     color = [COLOR.get(elem[ACTION], "green") for elem in df]
-
-#     fig.add_trace(
-#         go.Scatter(
-#             x=[d[X] for d in df],
-#             y=[d[Y] for d in df],
-#             text=text,
-#             marker_color=color,
-#             mode="markers+lines",
-#             line_color="gray",
-#             marker=dict(symbol="arrow", angle=yaws_for_arrow, size=15),
-#         )
-#     )
-#     if graph_view:
-#         if "xaxis" in graph_view:
-#             fig.update_xaxes(range=graph_view["xaxis"])
-#         if "yaxis" in graph_view:
-#             fig.update_yaxes(range=graph_view["yaxis"])
-#         if "autosize" in graph_view:
-#             fig.update_layout(autosize=graph_view["autosize"])
-#     return fig
 
 
 def main():
