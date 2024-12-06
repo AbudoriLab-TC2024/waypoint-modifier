@@ -174,17 +174,17 @@ def load_and_update_graph(reload_signal, filename, graph_view):
         return dash.no_update
     df = pd.read_csv(filename)
 
-    df.loc[df[ACTION].isna(), [ACTION]] = ""
+    df.loc[df[ACTION].isnull(), [ACTION]] = ""
     if df.at[df.index[-1], ACTION] == "":
         df.at[df.index[-1], ACTION] = "stop"
 
     # tolerance
     if "left_tolerance" not in df.columns:
         df["left_tolerance"] = 0.0
-    df.loc[df["left_tolerance"].isna(), ["left_tolerance"]] = 0.0
+    df.loc[df["left_tolerance"].isnull(), ["left_tolerance"]] = 0.0
     if "right_tolerance" not in df.columns:
         df["right_tolerance"] = 0.0
-    df.loc[df["right_tolerance"].isna(), ["right_tolerance"]] = 0.0
+    df.loc[df["right_tolerance"].isnull(), ["right_tolerance"]] = 0.0
 
 
     if YAW not in df.columns:
