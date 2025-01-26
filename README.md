@@ -58,6 +58,8 @@ Dash is running on http://127.0.0.1:8050/
 
 ### 点列の描画
 
+![img](waypoint_viewer.png)
+
 waypoint の CSVを可視化するWebアプリ。pip インストール時にインターネットアクセスが必要だが、一度インストールすればオフラインで動く(はず)。
 以下の列が必要。
 
